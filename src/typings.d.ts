@@ -1,3 +1,4 @@
+import { nativeDateAdapter } from "native-date-adapter";
 import { FlatpickrFn } from "./types/instance";
 import { Instance as _Instance } from "./types/instance";
 import {
@@ -35,6 +36,10 @@ declare namespace flatpickr {
     export type Plugin = _Plugin;
     export type LocaleKey = _LocaleKey;
   }
+}
+
+declare global {
+  type NativeDateAdapter = DateConstructor;
 }
 
 export default flatpickr;

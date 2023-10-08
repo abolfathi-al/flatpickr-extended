@@ -24,105 +24,109 @@ export const createDateFormatter = ({
   frmt: string,
   overrideLocale?: Locale
 ): string => {
-  const locale = overrideLocale || l10n;
+    const locale = overrideLocale || l10n;
 
-  if (config.formatDate !== undefined && !isMobile) {
-    return config.formatDate(dateObj, frmt, locale);
-  }
+    if (config.formatDate !== undefined && !isMobile) {
+      return config.formatDate(dateObj, frmt, locale);
+    }
 
-  return frmt
-    .split("")
-    .map((c, i, arr) =>
-      formats[c as token] && arr[i - 1] !== "\\"
-        ? formats[c as token](dateObj, locale, config)
-        : c !== "\\"
-        ? c
-        : ""
-    )
-    .join("");
-};
+    return frmt
+      .split("")
+      .map((c, i, arr) =>
+        formats[c as token] && arr[i - 1] !== "\\"
+          ? formats[c as token](dateObj, locale, config)
+          : c !== "\\"
+            ? c
+            : ""
+      )
+      .join("");
+  };
 
-export const createDateParser = ({ config = defaults, l10n = english }) => (
+export const createDateParser = ({
+  config = defaults,
+  l10n = english,
+  dateHandler = Date,
+}) => (
   date: Date | string | number,
   givenFormat?: string,
   timeless?: boolean,
   customLocale?: Locale
 ): Date | undefined => {
-  if (date !== 0 && !date) return undefined;
+    if (date !== 0 && !date) return undefined;
 
-  const locale = customLocale || l10n;
+    const locale = customLocale || l10n;
 
-  let parsedDate: Date | undefined;
-  const dateOrig = date;
+    let parsedDate: Date | undefined;
+    const dateOrig = date;
 
-  if (date instanceof Date) parsedDate = new Date(date.getTime());
-  else if (
-    typeof date !== "string" &&
-    date.toFixed !== undefined // timestamp
-  )
-    // create a copy
+    if (date instanceof Date) parsedDate = new Date(date.getTime());
+    else if (
+      typeof date !== "string" &&
+      date.toFixed !== undefined // timestamp
+    )
+      // create a copy
 
-    parsedDate = new Date(date);
-  else if (typeof date === "string") {
-    // date string
-    const format = givenFormat || (config || defaults).dateFormat;
-    const datestr = String(date).trim();
-
-    if (datestr === "today") {
-      parsedDate = new Date();
-      timeless = true;
-    } else if (config && config.parseDate) {
-      parsedDate = config.parseDate(date, format);
-    } else if (
-      /Z$/.test(datestr) ||
-      /GMT$/.test(datestr) // datestrings w/ timezone
-    ) {
       parsedDate = new Date(date);
-    } else {
-      let matched,
-        ops: { fn: RevFormatFn; val: string }[] = [];
+    else if (typeof date === "string") {
+      // date string
+      const format = givenFormat || (config || defaults).dateFormat;
+      const datestr = String(date).trim();
 
-      for (let i = 0, matchIndex = 0, regexStr = ""; i < format.length; i++) {
-        const token = format[i] as token;
-        const isBackSlash = (token as string) === "\\";
-        const escaped = format[i - 1] === "\\" || isBackSlash;
+      if (datestr === "today") {
+        parsedDate = new Date();
+        timeless = true;
+      } else if (config && config.parseDate) {
+        parsedDate = config.parseDate(date, format);
+      } else if (
+        /Z$/.test(datestr) ||
+        /GMT$/.test(datestr) // datestrings w/ timezone
+      ) {
+        parsedDate = new Date(date);
+      } else {
+        let matched,
+          ops: { fn: RevFormatFn; val: string }[] = [];
 
-        if (tokenRegex[token] && !escaped) {
-          regexStr += tokenRegex[token];
-          const match = new RegExp(regexStr).exec(date);
-          if (match && (matched = true)) {
-            ops[token !== "Y" ? "push" : "unshift"]({
-              fn: revFormat[token],
-              val: match[++matchIndex],
-            });
-          }
-        } else if (!isBackSlash) regexStr += "."; // don't really care
+        for (let i = 0, matchIndex = 0, regexStr = ""; i < format.length; i++) {
+          const token = format[i] as token;
+          const isBackSlash = (token as string) === "\\";
+          const escaped = format[i - 1] === "\\" || isBackSlash;
+
+          if (tokenRegex[token] && !escaped) {
+            regexStr += tokenRegex[token];
+            const match = new RegExp(regexStr).exec(date);
+            if (match && (matched = true)) {
+              ops[token !== "Y" ? "push" : "unshift"]({
+                fn: revFormat[token],
+                val: match[++matchIndex],
+              });
+            }
+          } else if (!isBackSlash) regexStr += "."; // don't really care
+        }
+
+        parsedDate =
+          !config || !config.noCalendar
+            ? new Date(new Date().getFullYear(), 0, 1, 0, 0, 0, 0)
+            : (new Date(new Date().setHours(0, 0, 0, 0)) as Date);
+
+        ops.forEach(
+          ({ fn, val }) =>
+            (parsedDate = fn(parsedDate as Date, val, locale) || parsedDate)
+        );
+
+        parsedDate = matched ? parsedDate : undefined;
       }
-
-      parsedDate =
-        !config || !config.noCalendar
-          ? new Date(new Date().getFullYear(), 0, 1, 0, 0, 0, 0)
-          : (new Date(new Date().setHours(0, 0, 0, 0)) as Date);
-
-      ops.forEach(
-        ({ fn, val }) =>
-          (parsedDate = fn(parsedDate as Date, val, locale) || parsedDate)
-      );
-
-      parsedDate = matched ? parsedDate : undefined;
     }
-  }
 
-  /* istanbul ignore next */
-  if (!(parsedDate instanceof Date && !isNaN(parsedDate.getTime()))) {
-    config.errorHandler(new Error(`Invalid date provided: ${dateOrig}`));
-    return undefined;
-  }
+    /* istanbul ignore next */
+    if (!(parsedDate instanceof Date && !isNaN(parsedDate.getTime()))) {
+      config.errorHandler(new Error(`Invalid date provided: ${dateOrig}`));
+      return undefined;
+    }
 
-  if (timeless === true) parsedDate.setHours(0, 0, 0, 0);
+    if (timeless === true) parsedDate.setHours(0, 0, 0, 0);
 
-  return parsedDate;
-};
+    return new dateHandler(parsedDate);
+  };
 
 /**
  * Compute the difference in dates, measured in ms

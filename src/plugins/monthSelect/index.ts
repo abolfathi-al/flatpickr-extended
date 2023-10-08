@@ -1,3 +1,4 @@
+import { nativeDateAdapter } from "native-date-adapter";
 import { Plugin } from "../../types/options";
 import { Instance, DayElement } from "../../types/instance";
 import { monthToStr } from "../../utils/formatting";
@@ -26,8 +27,14 @@ const defaultConfig: Config = {
 
 function monthSelectPlugin(pluginConfig?: Partial<Config>): Plugin {
   const config = { ...defaultConfig, ...pluginConfig };
+  let dateHandler: NativeDateAdapter;
 
   return (fp: Instance) => {
+    // set locale in date adapter
+    dateHandler = (<any>(
+      nativeDateAdapter(<string>fp.config.locale)
+    )) as DateConstructor;
+
     fp.config.dateFormat = config.dateFormat;
     fp.config.altFormat = config.altFormat;
     const self = { monthsContainer: null as null | HTMLDivElement };
@@ -74,13 +81,13 @@ function monthSelectPlugin(pluginConfig?: Partial<Config>): Plugin {
       for (let i = 0; i < 12; i++) {
         const month = fp.createDay(
           "flatpickr-monthSelect-month",
-          new Date(fp.currentYear, i),
+          new dateHandler(fp.currentYear, i),
           0,
           i
         );
         if (
-          month.dateObj.getMonth() === new Date().getMonth() &&
-          month.dateObj.getFullYear() === new Date().getFullYear()
+          month.dateObj.getMonth() === new dateHandler().getMonth() &&
+          month.dateObj.getFullYear() === new dateHandler().getFullYear()
         )
           month.classList.add("today");
         month.textContent = monthToStr(i, config.shorthand, fp.l10n);
@@ -161,7 +168,7 @@ function monthSelectPlugin(pluginConfig?: Partial<Config>): Plugin {
     function selectYear() {
       let selectedDate = fp.selectedDates[0];
       if (selectedDate) {
-        selectedDate = new Date(selectedDate);
+        selectedDate = new dateHandler(selectedDate);
         selectedDate.setFullYear(fp.currentYear);
         if (fp.config.minDate && selectedDate < fp.config.minDate) {
           selectedDate = fp.config.minDate;
@@ -215,7 +222,7 @@ function monthSelectPlugin(pluginConfig?: Partial<Config>): Plugin {
     }
 
     function setMonth(date: Date) {
-      const selectedDate = new Date(
+      const selectedDate = new dateHandler(
         fp.currentYear,
         date.getMonth(),
         date.getDate()

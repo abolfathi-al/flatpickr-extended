@@ -3,6 +3,7 @@ import typescript from "rollup-plugin-typescript";
 import babel from "rollup-plugin-babel";
 import serve from "rollup-plugin-serve";
 import livereload from "rollup-plugin-livereload";
+import { nodeResolve } from "@rollup/plugin-node-resolve";
 import { resolve } from "path";
 import * as pkg from "../package.json";
 import { RollupOptions } from "rollup";
@@ -32,6 +33,7 @@ export const getConfig = (opts?: { dev: boolean }): RollupOptions => ({
 
   plugins: [
     typescript({ tsconfig: resolve("./src/tsconfig.json", __dirname) }),
+    nodeResolve(),
     babel({ runtimeHelpers: true }),
     ...(opts && opts.dev
       ? [

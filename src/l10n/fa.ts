@@ -6,57 +6,67 @@ const fp =
   typeof window !== "undefined" && window.flatpickr !== undefined
     ? window.flatpickr
     : ({
-        l10ns: {},
-      } as FlatpickrFn);
+      l10ns: {},
+    } as FlatpickrFn);
 
 export const Persian: CustomLocale = {
   weekdays: {
-    shorthand: ["یک", "دو", "سه", "چهار", "پنج", "جمعه", "شنبه"],
+    shorthand: ["1ش", "۲ش", "۳ش", "۴ش", "۵ش", "ج", "ش"],
     longhand: [
       "یک‌شنبه",
       "دوشنبه",
       "سه‌شنبه",
       "چهارشنبه",
-      "پنچ‌شنبه",
+      "پنج‌شنبه",
       "جمعه",
       "شنبه",
     ],
   },
-
   months: {
     shorthand: [
-      "ژانویه",
-      "فوریه",
-      "مارس",
-      "آوریل",
-      "مه",
-      "ژوئن",
-      "ژوئیه",
-      "اوت",
-      "سپتامبر",
-      "اکتبر",
-      "نوامبر",
-      "دسامبر",
+      "فَر",
+      "اُر",
+      "خُر",
+      "تیر",
+      "مُر",
+      "شَه",
+      "مهر",
+      "آب",
+      "آذر",
+      "دی",
+      "بَه",
+      "اِس",
     ],
     longhand: [
-      "ژانویه",
-      "فوریه",
-      "مارس",
-      "آوریل",
-      "مه",
-      "ژوئن",
-      "ژوئیه",
-      "اوت",
-      "سپتامبر",
-      "اکتبر",
-      "نوامبر",
-      "دسامبر",
+      "فروردین",
+      "اردیبهشت",
+      "خرداد",
+      "تیر",
+      "مرداد",
+      "شهریور",
+      "مهر",
+      "آبان",
+      "آذر",
+      "دی",
+      "بهمن",
+      "اسفند",
     ],
   },
   firstDayOfWeek: 6,
+  daysInMonth: [31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30],
   ordinal: () => {
     return "";
   },
+  rangeSeparator: "\u200E تا \u200E",
+  // weekAbbreviation: "Wk",
+  // scrollTitle: "Scroll to increment",
+  // toggleTitle: "Click to toggle",
+  amPM: ["صبح", "بعدازظهر"],
+  yearAriaLabel: "سال",
+  monthAriaLabel: "ماه",
+  hourAriaLabel: "ساعت",
+  minuteAriaLabel: "دقیقه",
+  time_24hr: false,
 };
 
 fp.l10ns.fa = Persian;
